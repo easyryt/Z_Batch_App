@@ -20,7 +20,7 @@ class Constants {
   static const String getSubjectLecture =
       "student/allClass/subjects/contents/getAll";
   static const String buyBatch = "student/batch/payment/create";
-  static const String userAllAddressesEndPoint = "consumer/address/getAll";
+  static const String submitAnswer = "student/batch/subjects/test/score/submit";
   static const String addProductToCartEndPoint = "consumer/kart/addProduct";
   static const String removeProductToCartEndPoint =
       "consumer/kart/removeQuntityProduct";

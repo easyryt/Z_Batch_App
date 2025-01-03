@@ -58,16 +58,8 @@ class _LecturesScreenState extends State<LecturesScreen> {
                           // print(jsonEncode(item));
                           return InkWell(
                             onTap: () {
-                              if (item.isFreeContent == true) {
-                                if (item.videoUrl != null) {
-                                  Get.to(() => YoutubePlayerScreen(
-                                        videoUrl: item.videoUrl!,
-                                      ));
-                                } else {
-                                  Get.snackbar("Alert", "Video Not Found",
-                                      snackPosition: SnackPosition.TOP);
-                                }
-                              } else if (item.isBatchPaidByUser == true) {
+                              if (item.isFreeContent == true ||
+                                  item.isBatchPaidByUser == true) {
                                 if (item.videoUrl != null) {
                                   Get.to(() => YoutubePlayerScreen(
                                         videoUrl: item.videoUrl!,

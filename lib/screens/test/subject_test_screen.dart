@@ -23,6 +23,8 @@ class _SubjectTestScreenState extends State<SubjectTestScreen> {
   MainApplicationController mainApplicationController = Get.find();
   TestSubjectModel? testSubjectModel;
 
+  bool isLoading = false;
+
   @override
   void initState() {
     _fetchAllTest();
@@ -31,14 +33,21 @@ class _SubjectTestScreenState extends State<SubjectTestScreen> {
 
   Future<void> _fetchAllTest() async {
     try {
+      setState(() {
+        isLoading = true;
+      });
       final data = await mainApplicationController.getAllTest(widget.subId);
       if (mounted) {
         setState(() {
           testSubjectModel = data;
+          isLoading = false;
         });
       }
     } catch (error) {
       print("Error fetching data: $error");
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -84,125 +93,167 @@ class _SubjectTestScreenState extends State<SubjectTestScreen> {
           )
         ],
       ),
-      body: (testSubjectModel?.data?.length != 0 &&
-              testSubjectModel?.data?.length != null)
-          ? Padding(
-              padding: const EdgeInsets.only(
-                  left: 14, right: 14, bottom: 16, top: 2),
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    ListView.builder(
-                      itemCount: testSubjectModel?.data?.length,
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemBuilder: (context, index) {
-                        var item = testSubjectModel?.data![index];
-                        return GestureDetector(
-                          onTap: () {
-                            Get.to(() => IntroTest(
-                                  testId: item!.sId!,
-                                  testName: item.name!,
-                                ));
-                          },
-                          child: Container(
-                            margin: const EdgeInsets.only(
-                                bottom: 16, left: 2, right: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(10),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey[300]!,
-                                  blurRadius: 1,
-                                  spreadRadius: 1,
-                                  offset: const Offset(0, 0),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              children: [
-                                const SizedBox(height: 10),
-                                const Icon(
-                                  Icons.calendar_month,
-                                  size: 40,
-                                  color: Colors.black54,
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                      top: 10, right: 8, left: 8, bottom: 10),
-                                  child: Column(
-                                    children: [
-                                      SizedBox(
-                                        width: size.width * 0.8,
-                                        child: Center(
-                                          child: Text("${item?.name}",
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: GoogleFonts.roboto(
-                                                textStyle: const TextStyle(
-                                                  color: Colors.black54,
-                                                  fontSize: 15,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              )),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            CupertinoIcons.question_circle_fill,
-                                            size: 18,
-                                            color: lightGrey,
-                                          ),
-                                          const SizedBox(
-                                            width: 4,
-                                          ),
-                                          Text("${item?.totalQues} Questions  ",
-                                              style: GoogleFonts.roboto(
-                                                textStyle: TextStyle(
-                                                  color: lightGrey,
-                                                  fontSize: 12.5,
-                                                  fontWeight: FontWeight.w400,
-                                                ),
-                                              )),
-                                          Icon(
-                                            CupertinoIcons.time_solid,
-                                            size: 18,
-                                            color: lightGrey,
-                                          ),
-                                          const SizedBox(
-                                            width: 4,
-                                          ),
-                                          Text("${item?.duration} Minutes",
-                                              style: GoogleFonts.roboto(
-                                                textStyle: TextStyle(
-                                                  color: lightGrey,
-                                                  fontSize: 12.5,
-                                                  fontWeight: FontWeight.w400,
-                                                ),
-                                              )),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    )
-                  ],
-                ),
-              ),
+      body: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
             )
-          : const Center(
-              child: Text("No Data Available"),
-            ),
+          : (testSubjectModel?.data?.length != 0 &&
+                  testSubjectModel?.data?.length != null)
+              ? Padding(
+                  padding: const EdgeInsets.only(
+                      left: 14, right: 14, bottom: 16, top: 2),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        ListView.builder(
+                          itemCount: testSubjectModel?.data?.length,
+                          physics: const NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemBuilder: (context, index) {
+                            var item = testSubjectModel?.data![index];
+                            return GestureDetector(
+                              onTap: () {
+                                if (item.isFreeTest! ||
+                                    item.isBatchPaidByUser!) {
+                                  Get.to(() => IntroTest(
+                                        testId: item.sId!,
+                                        testName: item.name!,
+                                      ));
+                                } else {
+                                  Get.snackbar("Alert",
+                                      "Kindly purchase the batch to access the Test",
+                                      snackPosition: SnackPosition.TOP);
+                                }
+                              },
+                              child: Stack(
+                                children: [
+                                  Container(
+                                    margin: const EdgeInsets.only(
+                                        bottom: 16, left: 2, right: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(10),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.grey[300]!,
+                                          blurRadius: 1,
+                                          spreadRadius: 1,
+                                          offset: const Offset(0, 0),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        const SizedBox(height: 10),
+                                        const Icon(
+                                          Icons.calendar_month,
+                                          size: 40,
+                                          color: Colors.black54,
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              top: 10,
+                                              right: 8,
+                                              left: 8,
+                                              bottom: 10),
+                                          child: Column(
+                                            children: [
+                                              SizedBox(
+                                                width: size.width * 0.8,
+                                                child: Center(
+                                                  child: Text("${item?.name}",
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: GoogleFonts.roboto(
+                                                        textStyle:
+                                                            const TextStyle(
+                                                          color: Colors.black54,
+                                                          fontSize: 15,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        ),
+                                                      )),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 6),
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Icon(
+                                                    CupertinoIcons
+                                                        .question_circle_fill,
+                                                    size: 18,
+                                                    color: lightGrey,
+                                                  ),
+                                                  const SizedBox(
+                                                    width: 4,
+                                                  ),
+                                                  Text(
+                                                      "${item?.totalQues} Questions  ",
+                                                      style: GoogleFonts.roboto(
+                                                        textStyle: TextStyle(
+                                                          color: lightGrey,
+                                                          fontSize: 12.5,
+                                                          fontWeight:
+                                                              FontWeight.w400,
+                                                        ),
+                                                      )),
+                                                  Icon(
+                                                    CupertinoIcons.time_solid,
+                                                    size: 18,
+                                                    color: lightGrey,
+                                                  ),
+                                                  const SizedBox(
+                                                    width: 4,
+                                                  ),
+                                                  Text(
+                                                      "${item?.duration} Minutes",
+                                                      style: GoogleFonts.roboto(
+                                                        textStyle: TextStyle(
+                                                          color: lightGrey,
+                                                          fontSize: 12.5,
+                                                          fontWeight:
+                                                              FontWeight.w400,
+                                                        ),
+                                                      )),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Positioned(
+                                      top: 0,
+                                      bottom: 0,
+                                      left: 0,
+                                      right: 0,
+                                      child: item!.isFreeTest!
+                                          ? const SizedBox()
+                                          : item.isBatchPaidByUser!
+                                              ? const SizedBox()
+                                              : Center(
+                                                  child: Icon(
+                                                    Icons.lock,
+                                                    size: 28,
+                                                    color: black,
+                                                  ),
+                                                ))
+                                ],
+                              ),
+                            );
+                          },
+                        )
+                      ],
+                    ),
+                  ),
+                )
+              : const Center(
+                  child: Text("No Data Available"),
+                ),
     );
   }
 }

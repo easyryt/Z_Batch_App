@@ -5,6 +5,7 @@ import 'package:pk_education/constant/constants.dart';
 import 'package:pk_education/model/batch_description_model.dart';
 import 'package:pk_education/model/class_subject_model.dart';
 import 'package:pk_education/model/class_test_model.dart';
+import 'package:pk_education/model/score_card_model.dart';
 import 'package:pk_education/model/sub_dpp_pdf_model.dart';
 import 'package:pk_education/model/sub_lecture_model.dart';
 import 'package:pk_education/model/sub_notes_model.dart';
@@ -21,6 +22,7 @@ class MainApplicationController extends GetxController {
   var pageIdx = 0.obs;
   var className = ''.obs;
   var classId = ''.obs;
+  ScoreCardModel? scoreCardModel;
 
   List<Widget> homeWidgets = [
     const HomePage(),
@@ -120,8 +122,8 @@ class MainApplicationController extends GetxController {
       return DescriptionData.fromJson(batchDescriptionList);
     } else {
       print(response.statusMessage);
-
-      throw Exception(response.statusMessage);
+      return DescriptionData.fromJson({});
+      // throw Exception(response.statusMessage);
     }
   }
 
@@ -242,6 +244,42 @@ class MainApplicationController extends GetxController {
       print(response.statusMessage);
 
       return false;
+    }
+  }
+
+  var submittedTestList = [].obs;
+  Future submitAnswers(selectedOptions, testId) async {
+    List<Map<String, String>> responses = [];
+    selectedOptions.forEach((questionId, selectedOption) {
+      responses.add({
+        "questionId": questionId,
+        "selectedOption": selectedOption,
+      });
+    });
+
+    final jsonData = {"responses": responses};
+    try {
+      Dio.Response response = await Global.apiClient
+          .postData("${Constants.submitAnswer}/$testId", jsonData, null);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // submittedTestList.clear();
+        final submittedList = response.data["data"];
+        final submittedDetailList = response.data;
+        scoreCardModel = ScoreCardModel.fromJson(submittedDetailList);
+        // ScoreCardModel.fromJson(submittedDetailList);
+        // for (var item in submittedDetailList) {
+        //   submittedTestList.add(submittedDetailList.fromJson(item));
+        // }
+        //    submittedTestList.addAll(submittedDetailList);
+        return true;
+      } else {
+        print(response.statusMessage);
+
+        return false;
+      }
+    } catch (e) {
+      print('catch : $e');
     }
   }
 }

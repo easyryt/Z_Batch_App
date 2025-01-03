@@ -68,13 +68,6 @@ class _BatchTestState extends State<BatchTest> {
                           var item = widget.testSubject!.data?[index];
                           return GestureDetector(
                             onTap: () {
-                              // Navigator.push(
-                              //     context,
-                              //     MaterialPageRoute(
-                              //         builder: (_) => SubjectTestScreen(
-                              //               subId: item.sId!,
-                              //               subName: item.subjectName!,
-                              //             )));
                               Get.to(() => SubjectTestScreen(
                                     subId: item.sId!,
                                     subName: item.subjectName!,
